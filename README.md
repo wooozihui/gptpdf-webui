@@ -1,6 +1,6 @@
 # GPTPDF-WebUI
 
-A WebUI for [gptpdf](https://github.com/CosmosShadow/gptpdf). Demo: https://gptpdf-webui.onrender.com
+A WebUI for [gptpdf](https://github.com/CosmosShadow/gptpdf), convert pdf to markdown. Demo: https://gptpdf-webui.onrender.com
 ![image](https://github.com/user-attachments/assets/5c5278f3-2774-4a38-94c8-f62538df7769)
 
 # Deploy
@@ -19,4 +19,8 @@ docker run -d -p 8000:8000 zihui998/gptpdf-webui
 
 # Setting
 
-Click "Configute Parameters", set with your API key, model_name (Only support VLLMs like GPT-4o and GPT-4o-mini), base_url.
+Click "Configute Parameters", set the:
+- API key 
+- model_name (Only support VLLMs like GPT-4o and GPT-4o-mini)
+- base_url.
+- Temperature
