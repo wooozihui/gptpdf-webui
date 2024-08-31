@@ -1,0 +1,20 @@
+{
+  "name": "my-fastapi-app",
+  "version": "1.0.0",
+  "description": "A FastAPI project with Node.js dependencies",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "katex": "^0.15.3"
+  },
+  "devDependencies": {
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1",
+    "babel-loader": "^8.2.3",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0"
+  }
+}

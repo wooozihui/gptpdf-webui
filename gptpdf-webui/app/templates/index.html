@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF 转 Markdown</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/contrib/auto-render.min.js"
+            onload="renderMathInElement(document.body);"></script>
+    <style>
+        /* 页面整体样式 */
+        body, html {
+            font-family: 'Orbitron', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #0d0d0d;
+            color: #f0f0f0;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+        .background-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: linear-gradient(45deg, #ff0055, #00ffff, #2200ff, #ff5500);
+            background-size: 800% 800%;
+            animation: gradientAnimation 12s ease infinite;
+            z-index: 0;
+            opacity: 0.15;
+        }
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .particle-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .card {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px #ff0099, 0 0 25px #00ffff;
+            width: 100%;
+            max-width: 450px;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px #ff0099, 0 0 35px #00ffff;
+        }
+        h1 {
+            color: #ffffff;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 0 10px #ff0099, 0 0 20px #00ffff;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #cccccc;
+            font-size: 14px;
+            text-align: left;
+            text-shadow: 0 0 5px #00ffff;
+        }
+        input[type="text"], input[type="file"], input[type="number"], input[type="password"] {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            text-shadow: 0 0 5px #ff0099;
+        }
+        input[type="text"]:focus, input[type="file"]:focus, input[type="number"]:focus, input[type="password"]:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(145deg, #ff0099, #00ffff);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background 0.3s, box-shadow 0.3s, transform 0.3s;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+            text-shadow: 0 0 5px #ff0099;
+        }
+        button:hover {
+            background: linear-gradient(145deg, #00ffff, #ff0099);
+            box-shadow: 0 8px 20px rgba(255, 0, 153, 0.6), 0 0 10px #00ffff, 0 0 15px #ff0099;
+            transform: translateY(-3px);
+        }
+        .checkbox-container {
+            margin-bottom: 20px;
+            text-align: left;
+            width: 100%;
+            text-shadow: 0 0 5px #00ffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .overlay, .config-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* 提高 z-index 确保在所有元素之上 */
+            overflow: hidden;
+        }
+        .overlay:before, .config-overlay:before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff0055, #00ffff, #2200ff, #ff5500);
+            background-size: 800% 800%;
+            animation: gradientAnimation 12s ease infinite;
+            opacity: 0.1;
+            z-index: 1;
+        }
+        .markdown-modal, .config-modal {
+            background-color: rgba(10, 10, 10, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 15px #ff0099, 0 0 25px #00ffff;
+            position: relative;
+            color: #ffffff;
+            z-index: 2;
+            transition: all 0.5s ease-in-out;
+            transform-origin: center;
+        }
+        .fullscreen {
+            width: 80% !important;
+            height: 80% !important;
+            max-width: none !important;
+            max-height: none !important;
+            border-radius: 20px !important;
+            top: 0 !important;
+            left: 0 !important;
+            box-shadow: none !important;
+            overflow: hidden;
+        }
+        .markdown-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #f0f0f0;
+            text-shadow: 0 0 5px #ff0099;
+            overflow-y: auto;
+            height: calc(100% - 60px);
+            padding-top: 60px;
+        }
+        .markdown-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .close-button, .fullscreen-button {
+            position: fixed;
+            top: 15px;
+            right: 50px;
+            width: 30px;
+            height: 30px;
+            background: #ff0099;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 10px #ff0099, 0 0 20px #00ffff;
+            transition: background 0.3s, transform 0.3s;
+            z-index: 1010;
+        }
+        .fullscreen-button {
+            right: 15px;
+        }
+        .close-button:hover, .fullscreen-button:hover {
+            background: #00ffff;
+            transform: scale(1.1);
+        }
+        .hidden {
+            display: none;
+        }
+        .loading {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #00ffff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            box-shadow: 0 0 10px #ff0099, 0 0 20px #00ffff;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* 语言切换开关样式 */
+        .language-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 18px;
+            color: #ffffff;
+            cursor: pointer;
+            z-index: 100;
+            text-shadow: 0 0 5px #ff0099;
+        }
+        .language-switch span {
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background 0.3s, color 0.3s;
+        }
+        .language-switch .active {
+            background-color: #00ffff;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    <canvas class="particle-background"></canvas>
+
+    <!-- 语言切换开关 -->
+    <div id="language-switch" class="language-switch">
+        <span id="lang-cn" class="active">中</span> | <span id="lang-en">En</span>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h1 data-lang="PDF to Markdown" data-cn="PDF 转 Markdown">PDF 转 Markdown</h1>
+            <form id="convert-form" enctype="multipart/form-data">
+                <label for="url" data-lang="Enter PDF URL:" data-cn="输入 PDF 文件的 URL:">输入 PDF 文件的 URL:</label>
+                <input type="text" id="url" name="url" placeholder="https://example.com/file.pdf">
+                <label for="file" data-lang="Or upload a local PDF file:" data-cn="或上传本地 PDF 文件:">或上传本地 PDF 文件:</label>
+                <input type="file" id="file" name="file" accept=".pdf">
+                <div class="checkbox-container">
+                    <label for="using-cn">
+                        <input type="checkbox" id="using-cn" name="using_cn">
+                        <span data-lang="Use Chinese Translation" data-cn="使用中文翻译">使用中文翻译</span>
+                    </label>
+                    <label for="overwrite">
+                        <input type="checkbox" id="overwrite" name="overwrite">
+                        <span data-lang="Overwrite Same Name Files" data-cn="覆盖同名文件">覆盖同名文件</span>
+                    </label>
+                </div>
+                <button type="submit" data-lang="Convert to Markdown" data-cn="转换为 Markdown">转换为 Markdown</button>
+                <button type="button" id="clear-file-btn" data-lang="Clear File" data-cn="清除上传文件">清除上传文件</button>
+                <button type="button" id="config-btn" data-lang="Configure Parameters" data-cn="配置参数">配置参数</button>
+                <button id="download-markdown-btn" data-lang="Download Markdown" data-cn="下载 Markdown">下载 Markdown</button>
+            </form>
+            <div id="loading" class="loading hidden"></div>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay hidden">
+        <canvas class="particle-background"></canvas>
+        <div class="markdown-modal">
+            <button id="close-modal" class="close-button">&times;</button>
+            <button id="toggle-fullscreen" class="fullscreen-button">🔍</button>
+            <div id="markdown-content" class="markdown-content"></div>
+        </div>
+    </div>
+
+    <div id="config-overlay" class="config-overlay hidden">
+        <canvas class="particle-background"></canvas>
+        <div class="config-modal">
+            <button id="close-config" class="close-button">&times;</button>
+            <div class="config-content">
+                <h2 data-lang="Configure Parameters" data-cn="配置参数">配置参数</h2>
+                <label for="model-name" data-lang="Model Name:" data-cn="模型名称:">模型名称:</label>
+                <input type="text" id="model-name" placeholder="gpt-4o">
+                <label for="api-key" data-lang="API Key:" data-cn="API Key:">API Key:</label>
+                <input type="password" id="api-key" placeholder="Your API Key">
+                <label for="base-url" data-lang="Base URL:" data-cn="Base URL:">Base URL:</label>
+                <input type="text" id="base-url" placeholder="https://api.openai-proxy.org/v1">
+                <label for="temperature" data-lang="Temperature Parameter:" data-cn="温度参数:">温度参数:</label>
+                <input type="number" id="temperature" step="0.1" min="0" max="1" placeholder="0.2">
+                <button type="button" id="save-config-btn" data-lang="Save Configuration" data-cn="保存配置">保存配置</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const form = document.getElementById('convert-form');
+        const overlay = document.getElementById('overlay');
+        const closeModalBtn = document.getElementById('close-modal');
+        const toggleFullscreenBtn = document.getElementById('toggle-fullscreen');
+        const markdownModal = document.querySelector('.markdown-modal');
+        const markdownContent = document.getElementById('markdown-content');
+        const downloadMarkdownBtn = document.getElementById('download-markdown-btn');
+        const loadingIndicator = document.getElementById('loading');
+        const clearFileBtn = document.getElementById('clear-file-btn');
+        const fileInput = document.getElementById('file');
+        const urlInput = document.getElementById('url');
+        const configBtn = document.getElementById('config-btn');
+        const configOverlay = document.getElementById('config-overlay');
+        const closeConfigBtn = document.getElementById('close-config');
+        const saveConfigBtn = document.getElementById('save-config-btn');
+        const langCnBtn = document.getElementById('lang-cn');
+        const langEnBtn = document.getElementById('lang-en');
+        let isFullscreen = false;
+
+        // 初始语言设置为中文
+        switchLanguage('cn');
+
+        langCnBtn.addEventListener('click', function() {
+            switchLanguage('cn');
+        });
+
+        langEnBtn.addEventListener('click', function() {
+            switchLanguage('en');
+        });
+
+        function switchLanguage(language) {
+            const elementsToTranslate = document.querySelectorAll('[data-lang]');
+            elementsToTranslate.forEach(element => {
+                if (language === 'en') {
+                    element.textContent = element.getAttribute('data-lang'); // 显示英文
+                    langCnBtn.classList.remove('active');
+                    langEnBtn.classList.add('active');
+                } else {
+                    element.textContent = element.getAttribute('data-cn'); // 显示中文
+                    langEnBtn.classList.remove('active');
+                    langCnBtn.classList.add('active');
+                }
+            });
+        }
+
+        configBtn.addEventListener('click', function() {
+            configOverlay.classList.remove('hidden');
+        });
+
+        closeConfigBtn.addEventListener('click', function() {
+            configOverlay.classList.add('hidden');
+        });
+
+        saveConfigBtn.addEventListener('click', function() {
+            const modelName = document.getElementById('model-name').value;
+            const apiKey = document.getElementById('api-key').value;
+            const baseUrl = document.getElementById('base-url').value;
+            const temperature = document.getElementById('temperature').value;
+
+            localStorage.setItem('model_name', modelName);
+            localStorage.setItem('api_key', apiKey);
+            localStorage.setItem('base_url', baseUrl);
+            localStorage.setItem('temperature', temperature);
+
+            alert('配置已保存');
+            configOverlay.classList.add('hidden');
+        });
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            if (!fileInput.value && !urlInput.value) {
+                alert("请提供一个 PDF 文件或 URL。");
+                return;
+            }
+
+            const formData = new FormData(form);
+            formData.append('model_name', document.getElementById('model-name').value || 'gpt-4o');
+            formData.append('api_key', document.getElementById('api-key').value);
+            formData.append('base_url', document.getElementById('base-url').value || 'https://api.openai-proxy.org/v1');
+            formData.append('temperature', document.getElementById('temperature').value || 0.2);
+            
+            // 获取当前页面的 URL 并添加到 formData
+            const currentUrl = window.location.origin;
+            formData.append('web_url', currentUrl);
+
+            showLoading(true);
+
+            fetch('/convert/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                showLoading(false);
+                if (typeof marked === 'undefined') {
+                    console.error('Marked library is not loaded');
+                    markdownContent.textContent = 'Error: Markdown rendering library not available.';
+                } else {
+                    try {
+                        markdownContent.innerHTML = marked.parse(data);
+                        renderMathInElement(markdownContent, {
+                            delimiters: [
+                                {left: "$$", right: "$$", display: true},
+                                {left: "$", right: "$", display: false}
+                            ]
+                        });
+                    } catch (e) {
+                        console.error('Error parsing markdown:', e);
+                        markdownContent.textContent = 'Error rendering markdown.';
+                    }
+                }
+                overlay.classList.remove('hidden');
+            })
+            .catch(error => {
+                showLoading(false);
+                console.error('Error:', error);
+                markdownContent.textContent = 'Error fetching or rendering markdown.';
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        closeModalBtn.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            if (isFullscreen) {
+                toggleFullscreen();
+            }
+        });
+
+        toggleFullscreenBtn.addEventListener('click', function() {
+            toggleFullscreen();
+        });
+
+        clearFileBtn.addEventListener('click', function() {
+            fileInput.value = "";
+            urlInput.value = "";
+        });
+
+        downloadMarkdownBtn.addEventListener('click', function() {
+            const userUrl = document.getElementById('url').value;
+            const usingCn = document.getElementById('using-cn').checked;
+            window.location.href = `/download/?url=${encodeURIComponent(userUrl)}&using_cn=${usingCn}`;
+        });
+
+        overlay.addEventListener('click', function(event) {
+            if (event.target === overlay) {
+                overlay.classList.add('hidden');
+                if (isFullscreen) {
+                    toggleFullscreen();
+                }
+            }
+        });
+
+        function toggleFullscreen() {
+            isFullscreen = !isFullscreen;
+            if (isFullscreen) {
+                markdownModal.classList.add('fullscreen');
+                toggleFullscreenBtn.textContent = '❌';
+                closeModalBtn.style.position = 'fixed';
+                toggleFullscreenBtn.style.position = 'fixed';
+            } else {
+                markdownModal.classList.remove('fullscreen');
+                toggleFullscreenBtn.textContent = '🔍';
+                closeModalBtn.style.position = 'absolute';
+                toggleFullscreenBtn.style.position = 'absolute';
+            }
+        }
+
+        function showLoading(isLoading) {
+            if (isLoading) {
+                loadingIndicator.classList.remove('hidden');
+            } else {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
+
