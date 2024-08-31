@@ -6,7 +6,7 @@ A WebUI for gptpdf.
 # Local
 
 ```
-cd app
+cd ./GPTPDF-WebUI/gptpdf-webui/app
 pip install -r requirements
 uvicorn main:app --reload
 ```
