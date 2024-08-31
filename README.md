@@ -2,6 +2,7 @@
 
 A Cyberpunk style WebUI for [gptpdf](https://github.com/CosmosShadow/gptpdf), convert pdf to markdown. Demo: https://gptpdf-webui.onrender.com
 ![image](https://github.com/user-attachments/assets/5c5278f3-2774-4a38-94c8-f62538df7769)
+![image](https://github.com/user-attachments/assets/499203a5-ff9c-4732-9f76-e8e341d2df4b)
 
 # Deploy
 ## Local
