@@ -20,7 +20,7 @@ docker run -d -p 8000:8000 zihui998/gptpdf-webui
 
 # Setting
 
-Click "Configute Parameters", set the:
+Click "Configute Parameters" to set:
 - API key 
 - model_name (Only support VLLMs like GPT-4o and GPT-4o-mini)
 - base_url.
