@@ -3,7 +3,7 @@
 A WebUI for gptpdf. Demo: https://gptpdf-webui.onrender.com
 ![image](https://github.com/user-attachments/assets/5c5278f3-2774-4a38-94c8-f62538df7769)
 
-# deploy
+# Deploy
 ## Local
 
 ```
