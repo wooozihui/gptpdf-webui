@@ -17,4 +17,6 @@ uvicorn main:app --reload
 docker run -d -p 8000:8000 zihui998/gptpdf-webui
 ```
 
+# Setting
 
+Click "Configute Parameters", set with your API key, model_name (Only support VLLMs like GPT-4o and GPT-4o-mini), base_url.
