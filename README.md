@@ -15,7 +15,7 @@ uvicorn main:app --reload
 
 ## Docker
 ```
-docker run -d -p 8000:8000 zihui998/gptpdf-webui
+docker run -d -p 80:8000 --name gpdpdf-webui zihui998/gptpdf-webui
 ```
 
 # Setting
