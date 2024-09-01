@@ -7,10 +7,21 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
+      # 检出仓库代码
       - uses: actions/checkout@v4
+
+      # 登录到 GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # 构建 Docker 镜像
       - name: Build the Docker image
-        run: docker build ./gptpdf-webui/app --file ./gptpdf-webui/app/Dockerfile --tag zihui/gptpdf-webui:latest
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/gptpdf-webui:latest ./gptpdf-webui/app
+
+      # 推送镜像到 GitHub Container Registry
+      - name: Push Docker Image
+        run: docker push ghcr.io/${{ github.repository_owner }}/gptpdf-webui:latest
