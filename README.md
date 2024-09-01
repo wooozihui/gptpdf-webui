@@ -18,7 +18,7 @@ uvicorn main:app --reload
 ### 🐳 Docker Deployment
 
 ```bash
-docker run -d -p 80:8000 --name gpdpdf-webui zihui998/gptpdf-webui
+docker run -d -p 8000:8000 --name gpdpdf-webui ghcr.io/wooozihui/gptpdf-webui:latest
 ```
 
 ## ⚙️ Settings
