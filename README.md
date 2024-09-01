@@ -10,7 +10,7 @@ A Cyberpunk-style WebUI for [gptpdf](https://github.com/CosmosShadow/gptpdf) tha
 ### 🖥️ Local Deployment
 
 ```bash
-cd ./GPTPDF-WebUI/gptpdf-webui/app
+cd ./gptpdf-webui/gptpdf-webui/app
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
