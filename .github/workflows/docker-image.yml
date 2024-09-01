@@ -14,6 +14,10 @@ jobs:
       # 检出仓库代码
       - uses: actions/checkout@v4
 
+      # 登出任何先前的 Docker 会话，防止凭据问题
+      - name: Logout from any previous Docker sessions
+        run: docker logout ghcr.io
+
       # 登录到 GitHub Container Registry
       - name: Login to GitHub Container Registry
         run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
